@@ -79,6 +79,7 @@ export const AuthForm = () => {
     setErrors(prev => ({ ...prev, general: '' }));
 
     if (!validateForm()) {
+      console.log('Form validation failed', errors);
       return;
     }
 
@@ -86,7 +87,9 @@ export const AuthForm = () => {
 
     try {
       if (isLogin) {
+        console.log('Attempting login for:', formData.email);
         const response = await authApi.login(formData.email, formData.password);
+        console.log('Login successful', response);
         setIsAuthenticated(true);
         setUserEmail(formData.email);
         setHasPaid(response.user.hasPaid);
@@ -97,12 +100,15 @@ export const AuthForm = () => {
           navigate('/subscription');
         }
       } else {
+        console.log('Attempting registration for:', formData.email);
         if (!selectedPlan) {
+          console.log('No plan selected, navigating to /subscription');
           navigate('/subscription');
           return;
         }
 
         const response = await authApi.register(formData.email, formData.password);
+        console.log('Registration successful', response);
         setIsAuthenticated(true);
         setUserEmail(formData.email);
         setHasPaid(false);
@@ -111,6 +117,7 @@ export const AuthForm = () => {
         window.location.href = 'https://buy.stripe.com/test_14k3dRectcHMd2M5kk';
       }
     } catch (error) {
+      console.error('Error during authentication', error);
       let errorMessage = 'Une erreur est survenue. Veuillez réessayer.';
 
       if (error.response?.status === 401) {
