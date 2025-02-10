@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../App';
 import { authApi } from '../../services/auth';
+import logo from '../../image/logo.png';
 
 const validateEmail = (email: string) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -140,7 +141,7 @@ export const AuthForm = () => {
   return (
     <div className="w-full max-w-md p-8 rounded-lg backdrop-blur-sm mb-40">
       <div className="flex flex-col items-center text-center mb-14">
-        <img src="/src/image/logo.png" alt="Logo" className="h-40 w-40" />
+        <<img src={logo} alt="Minima Logo" className="h-40 w-40" />
       </div>
 
       <h2 className="text-2xl font-bold text-white mb-6 text-center">
