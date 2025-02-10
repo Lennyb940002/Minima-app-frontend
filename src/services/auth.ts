@@ -2,13 +2,33 @@ import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_BACKEND_URL + '/api';
 
+const axiosConfig = {
+    withCredentials: true,
+    headers: {
+        'Content-Type': 'application/json',
+    }
+};
+
+// Configuration globale d'axios
+axios.defaults.withCredentials = true;
+
 export const authApi = {
     login: async (email: string, password: string) => {
         try {
-            const response = await axios.post(`${API_URL}/auth/login`, { email, password });
+            const response = await axios.post(
+                `${API_URL}/auth/login`,
+                { email, password },
+                {
+                    ...axiosConfig,
+                    headers: {
+                        ...axiosConfig.headers,
+                        'Access-Control-Allow-Origin': 'https://minima-app-frontend.vercel.app'
+                    }
+                }
+            );
             const { token, user } = response.data;
             localStorage.setItem('token', token);
-            localStorage.setItem('userId', user._id);
+            localStorage.setItem('userId', user.id);
             localStorage.setItem('hasPaid', user.hasPaid.toString());
             return { token, user };
         } catch (error) {
@@ -21,10 +41,20 @@ export const authApi = {
 
     register: async (email: string, password: string, planId: string) => {
         try {
-            const response = await axios.post(`${API_URL}/auth/register`, { email, password, planId });
+            const response = await axios.post(
+                `${API_URL}/auth/register`,
+                { email, password, planId },
+                {
+                    ...axiosConfig,
+                    headers: {
+                        ...axiosConfig.headers,
+                        'Access-Control-Allow-Origin': 'https://minima-app-frontend.vercel.app'
+                    }
+                }
+            );
             const { token, user } = response.data;
             localStorage.setItem('token', token);
-            localStorage.setItem('userId', user._id);
+            localStorage.setItem('userId', user.id);
             localStorage.setItem('hasPaid', user.hasPaid.toString());
             return { token, user };
         } catch (error) {
@@ -50,6 +80,7 @@ export const authApi = {
     }
 };
 
+// Intercepteurs axios
 axios.interceptors.request.use((config) => {
     const token = localStorage.getItem('token');
     if (token) {
