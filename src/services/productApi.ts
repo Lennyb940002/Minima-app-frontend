@@ -1,8 +1,7 @@
-// services/productApi.ts
 import axios from 'axios';
 import { Product } from '../components/product/types';
 
-const API_URL = 'http://localhost:3001/api/products';
+const API_URL = import.meta.env.VITE_BACKEND_URL + '/api/products';
 
 const api = axios.create({
     baseURL: API_URL,
