@@ -24,13 +24,13 @@ interface AuthContextType {
 
 export const AuthContext = createContext<AuthContextType>({
   isAuthenticated: false,
-  setIsAuthenticated: () => { },
+  setIsAuthenticated: () => {},
   selectedPlan: null,
-  setSelectedPlan: () => { },
+  setSelectedPlan: () => {},
   userEmail: '',
-  setUserEmail: () => { },
+  setUserEmail: () => {},
   hasPaid: false,
-  setHasPaid: () => { },
+  setHasPaid: () => {},
   isLoading: true,
 });
 
@@ -119,7 +119,17 @@ function App() {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, setIsAuthenticated, selectedPlan, setSelectedPlan, userEmail, setUserEmail, hasPaid, setHasPaid, isLoading }}>
+    <AuthContext.Provider value={{ 
+      isAuthenticated, 
+      setIsAuthenticated, 
+      selectedPlan, 
+      setSelectedPlan, 
+      userEmail, 
+      setUserEmail, 
+      hasPaid, 
+      setHasPaid, 
+      isLoading 
+    }}>
       <Router>
         <MainContent />
       </Router>
