@@ -4,7 +4,6 @@ import { AuthForm } from './components/auth/AuthForm';
 import { Header } from './components/layout/Header';
 import { EcommerceDashboard } from './components/dashboard/EcommerceDashboard';
 import SeanceSport from './components/sport/SeanceSport';
-import FocusTimer from './components/Personelle/PersonelleView';
 import { SubscriptionPlans } from './components/auth/SubscriptionPlans';
 import PaymentForm from './components/auth/PaymentForm';
 import { LoadingScreen } from './components/loading/LoadingScreen';
@@ -63,8 +62,6 @@ const MainContent = () => {
           <Route path="/payment" element={<ProtectedPaymentForm />} />
           <Route path="/loading" element={<LoadingScreen />} />
           <Route path="/ecommerce" element={<ProtectedRoute><EcommerceDashboard /></ProtectedRoute>} />
-          <Route path="/sceance-sport" element={<ProtectedRoute><SeanceSport /></ProtectedRoute>} />
-          <Route path="/suivi-personnel" element={<ProtectedRoute><FocusTimer /></ProtectedRoute>} />
         </Routes>
       </main>
     </div>
