@@ -2,66 +2,76 @@ import axios from 'axios';
 
 const API_URL = import.meta.env.VITE_BACKEND_URL + '/api';
 
-const axiosConfig = {
-    withCredentials: true,
-    headers: {
-        'Content-Type': 'application/json',
-    }
-};
-
-// Configuration globale d'axios
+// Configuration de base d'axios
+axios.defaults.baseURL = API_URL;
 axios.defaults.withCredentials = true;
+axios.defaults.headers.common['Content-Type'] = 'application/json';
+
+// Fonction utilitaire pour gérer les erreurs
+const handleError = (error: any) => {
+    console.error('API Error:', error);
+    if (error.response) {
+        console.error('Response data:', error.response.data);
+        console.error('Response status:', error.response.status);
+    }
+    localStorage.removeItem('token');
+    localStorage.removeItem('userId');
+    localStorage.removeItem('hasPaid');
+    throw error;
+};
 
 export const authApi = {
     login: async (email: string, password: string) => {
         try {
-            const response = await axios.post(
-                `${API_URL}/auth/login`,
+            console.log('Attempting login for:', email);
+            const response = await axios.post('/auth/login', 
                 { email, password },
                 {
-                    ...axiosConfig,
                     headers: {
-                        ...axiosConfig.headers,
-                        'Access-Control-Allow-Origin': 'https://minima-app-frontend.vercel.app'
-                    }
+                        'Content-Type': 'application/json'
+                    },
+                    withCredentials: true
                 }
             );
-            const { token, user } = response.data;
-            localStorage.setItem('token', token);
-            localStorage.setItem('userId', user.id);
-            localStorage.setItem('hasPaid', user.hasPaid.toString());
-            return { token, user };
+            
+            console.log('Login response:', response.data);
+            
+            if (response.data.token) {
+                localStorage.setItem('token', response.data.token);
+                localStorage.setItem('userId', response.data.user.id);
+                localStorage.setItem('hasPaid', response.data.user.hasPaid.toString());
+            }
+            
+            return response.data;
         } catch (error) {
-            localStorage.removeItem('token');
-            localStorage.removeItem('userId');
-            localStorage.removeItem('hasPaid');
-            throw error;
+            return handleError(error);
         }
     },
 
-    register: async (email: string, password: string, planId: string) => {
+    register: async (email: string, password: string) => {
         try {
-            const response = await axios.post(
-                `${API_URL}/auth/register`,
-                { email, password, planId },
+            console.log('Attempting registration for:', email);
+            const response = await axios.post('/auth/register', 
+                { email, password },
                 {
-                    ...axiosConfig,
                     headers: {
-                        ...axiosConfig.headers,
-                        'Access-Control-Allow-Origin': 'https://minima-app-frontend.vercel.app'
-                    }
+                        'Content-Type': 'application/json'
+                    },
+                    withCredentials: true
                 }
             );
-            const { token, user } = response.data;
-            localStorage.setItem('token', token);
-            localStorage.setItem('userId', user.id);
-            localStorage.setItem('hasPaid', user.hasPaid.toString());
-            return { token, user };
+            
+            console.log('Registration response:', response.data);
+            
+            if (response.data.token) {
+                localStorage.setItem('token', response.data.token);
+                localStorage.setItem('userId', response.data.user.id);
+                localStorage.setItem('hasPaid', response.data.user.hasPaid.toString());
+            }
+            
+            return response.data;
         } catch (error) {
-            localStorage.removeItem('token');
-            localStorage.removeItem('userId');
-            localStorage.removeItem('hasPaid');
-            throw error;
+            return handleError(error);
         }
     },
 
@@ -80,19 +90,26 @@ export const authApi = {
     }
 };
 
-// Intercepteurs axios
-axios.interceptors.request.use((config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
+// Intercepteurs
+axios.interceptors.request.use(
+    (config) => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+    },
+    (error) => {
+        console.error('Request interceptor error:', error);
+        return Promise.reject(error);
     }
-    return config;
-});
+);
 
 axios.interceptors.response.use(
-    response => response,
-    error => {
+    (response) => response,
+    (error) => {
         if (error.response?.status === 401) {
+            console.log('Unauthorized access, redirecting to login');
             authApi.logout();
             window.location.href = '/auth';
         }
