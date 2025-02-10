@@ -76,11 +76,9 @@ export const AuthForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Form submitted');
     setErrors(prev => ({ ...prev, general: '' }));
 
     if (!validateForm()) {
-      console.log('Form validation failed');
       return;
     }
 
@@ -88,9 +86,7 @@ export const AuthForm = () => {
 
     try {
       if (isLogin) {
-        console.log('Attempting login');
         const response = await authApi.login(formData.email, formData.password);
-        console.log('Login successful', response);
         setIsAuthenticated(true);
         setUserEmail(formData.email);
         setHasPaid(response.user.hasPaid);
@@ -101,15 +97,12 @@ export const AuthForm = () => {
           navigate('/subscription');
         }
       } else {
-        console.log('Attempting registration');
         if (!selectedPlan) {
-          console.log('No plan selected, navigating to /subscription');
           navigate('/subscription');
           return;
         }
 
         const response = await authApi.register(formData.email, formData.password);
-        console.log('Registration successful', response);
         setIsAuthenticated(true);
         setUserEmail(formData.email);
         setHasPaid(false);
@@ -118,7 +111,6 @@ export const AuthForm = () => {
         window.location.href = 'https://buy.stripe.com/test_14k3dRectcHMd2M5kk';
       }
     } catch (error) {
-      console.error('Error during authentication', error);
       let errorMessage = 'Une erreur est survenue. Veuillez réessayer.';
 
       if (error.response?.status === 401) {
@@ -141,7 +133,7 @@ export const AuthForm = () => {
   return (
     <div className="w-full max-w-md p-8 rounded-lg backdrop-blur-sm mb-40">
       <div className="flex flex-col items-center text-center mb-14">
-        <<img src={logo} alt="Minima Logo" className="h-40 w-40" />
+        <img src={logo} alt="Minima Logo" className="h-40 w-40" />
       </div>
 
       <h2 className="text-2xl font-bold text-white mb-6 text-center">
