@@ -1,38 +1,42 @@
 // authApi.ts
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_BACKEND_URL;
-if (!API_URL) {
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+if (!BACKEND_URL) {
   throw new Error('Backend URL not configured');
 }
 
-axios.defaults.baseURL = API_URL;
-axios.defaults.withCredentials = true;
-axios.defaults.headers.common['Content-Type'] = 'application/json';
+const API_URL = `${BACKEND_URL}/api`;
+
+// Axios instance configuration
+const api = axios.create({
+  baseURL: API_URL,
+  withCredentials: true,
+  headers: {
+    'Content-Type': 'application/json'
+  }
+});
 
 const handleError = (error: any) => {
-  if (error.response) {
-    console.error('API Error:', {
-      data: error.response.data,
-      status: error.response.status
-    });
+  console.error('API Error:', {
+    message: error.message,
+    response: error.response?.data,
+    status: error.response?.status
+  });
+  
+  if (error.response?.status === 401) {
+    localStorage.clear();
+    window.location.href = '/auth';
   }
-  localStorage.clear();
+  
   throw error;
 };
 
 export const authApi = {
   login: async (email: string, password: string) => {
     try {
-      const response = await axios.post('/api/auth/login', 
-        { email, password },
-        {
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          withCredentials: true
-        }
-      );
+      console.log('Attempting login at:', `${API_URL}/auth/login`);
+      const response = await api.post('/auth/login', { email, password });
       
       if (response.data.token) {
         localStorage.setItem('token', response.data.token);
@@ -48,15 +52,7 @@ export const authApi = {
 
   register: async (email: string, password: string) => {
     try {
-      const response = await axios.post('/api/auth/register', 
-        { email, password },
-        {
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          withCredentials: true
-        }
-      );
+      const response = await api.post('/auth/register', { email, password });
       
       if (response.data.token) {
         localStorage.setItem('token', response.data.token);
@@ -72,10 +68,12 @@ export const authApi = {
 
   logout: () => {
     localStorage.clear();
+    window.location.href = '/auth';
   },
 
   isAuthenticated: () => {
-    return !!localStorage.getItem('token');
+    const token = localStorage.getItem('token');
+    return !!token;
   },
 
   getToken: () => {
@@ -83,7 +81,8 @@ export const authApi = {
   }
 };
 
-axios.interceptors.request.use(
+// Request interceptor
+api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
     if (token) {
@@ -94,13 +93,15 @@ axios.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-axios.interceptors.response.use(
+// Response interceptor
+api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
       authApi.logout();
-      window.location.href = '/auth';
     }
     return Promise.reject(error);
   }
 );
+
+export default authApi;
