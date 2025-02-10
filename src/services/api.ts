@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { Sale } from '../components/sales/types';
 
-const API_URL = 'http://localhost:3001/api/sales';
+const API_URL = import.meta.env.VITE_BACKEND_URL + '/api/sales';
 
 const api = axios.create({
     baseURL: API_URL,
