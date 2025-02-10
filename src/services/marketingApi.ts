@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:3001/api/marketing';
+const API_URL = import.meta.env.VITE_BACKEND_URL + '/api/marketing';
 
 const api = axios.create({
     baseURL: API_URL,
