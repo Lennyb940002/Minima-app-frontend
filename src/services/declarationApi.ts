@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:3001/api/declarations';
+const API_URL = import.meta.env.VITE_BACKEND_URL + '/api/declarations';
 
 // Crée une instance d'axios avec une configuration de base
 const api = axios.create({
