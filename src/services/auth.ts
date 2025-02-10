@@ -23,6 +23,7 @@ const handleError = (error: any) => {
 export const authApi = {
     login: async (email: string, password: string) => {
         try {
+            console.log('Attempting login for:', email);
             const response = await axios.post('/auth/login', 
                 { email, password },
                 {
@@ -32,6 +33,8 @@ export const authApi = {
                     withCredentials: true
                 }
             );
+            
+            console.log('Login response:', response.data);
             
             if (response.data.token) {
                 localStorage.setItem('token', response.data.token);
@@ -47,6 +50,7 @@ export const authApi = {
 
     register: async (email: string, password: string) => {
         try {
+            console.log('Attempting registration for:', email);
             const response = await axios.post('/auth/register', 
                 { email, password },
                 {
@@ -56,6 +60,8 @@ export const authApi = {
                     withCredentials: true
                 }
             );
+            
+            console.log('Registration response:', response.data);
             
             if (response.data.token) {
                 localStorage.setItem('token', response.data.token);
@@ -94,6 +100,7 @@ axios.interceptors.request.use(
         return config;
     },
     (error) => {
+        console.error('Request interceptor error:', error);
         return Promise.reject(error);
     }
 );
@@ -102,6 +109,7 @@ axios.interceptors.response.use(
     (response) => response,
     (error) => {
         if (error.response?.status === 401) {
+            console.log('Unauthorized access, redirecting to login');
             authApi.logout();
             window.location.href = '/auth';
         }
