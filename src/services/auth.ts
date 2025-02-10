@@ -1,55 +1,110 @@
-import express from 'express';
-import cors from 'cors';
-import bodyParser from 'body-parser';
-import dotenv from 'dotenv';
-import helmet from 'helmet';  // Ajout du middleware Helmet pour la sécurité
-import rateLimit from 'express-rate-limit'; // Ajout du rate limiting
-import { connectDB } from './utils/db';
-import { authRouter } from './routes/auth';
+import axios from 'axios';
 
-// Load environment variables from .env file
-dotenv.config();
+const API_URL = import.meta.env.VITE_BACKEND_URL + '/api';
 
-const app = express();
-const port = process.env.PORT || 3000;
+// Configuration de base d'axios
+axios.defaults.baseURL = API_URL;
+axios.defaults.withCredentials = true;
+axios.defaults.headers.common['Content-Type'] = 'application/json';
 
-// Connect to MongoDB
-connectDB();
-
-// Configure CORS options
-const corsOptions = {
-  origin: process.env.CORS_ORIGIN,
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+// Fonction utilitaire pour gérer les erreurs
+const handleError = (error: any) => {
+    console.error('API Error:', error);
+    if (error.response) {
+        console.error('Response data:', error.response.data);
+        console.error('Response status:', error.response.status);
+    }
+    if (error.response?.status === 401) {
+        console.log('Unauthorized access, redirecting to login');
+        authApi.logout();
+        window.location.href = '/auth';
+    }
+    throw error;
 };
 
-// Middleware
-app.use(cors(corsOptions));
-app.use(helmet()); // Utilisation de Helmet pour améliorer la sécurité
-app.use(bodyParser.json());
+export const authApi = {
+    login: async (email: string, password: string) => {
+        try {
+            console.log('Attempting login for:', email);
+            const response = await axios.post('/auth/login', 
+                { email, password },
+                {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    withCredentials: true
+                }
+            );
+            
+            console.log('Login response:', response.data);
+            
+            // Token is stored in httpOnly cookie, no need to store it in localStorage
+            
+            return response.data;
+        } catch (error) {
+            return handleError(error);
+        }
+    },
 
-// Rate limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limite chaque IP à 100 requêtes par fenêtre de 15 minutes
-  message: 'Too many requests from this IP, please try again later.'
-});
-app.use(limiter);
+    register: async (email: string, password: string) => {
+        try {
+            console.log('Attempting registration for:', email);
+            const response = await axios.post('/auth/register', 
+                { email, password },
+                {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    withCredentials: true
+                }
+            );
+            
+            console.log('Registration response:', response.data);
+            
+            // Token is stored in httpOnly cookie, no need to store it in localStorage
+            
+            return response.data;
+        } catch (error) {
+            return handleError(error);
+        }
+    },
 
-// Health check route
-app.get('/', (req, res) => {
-  res.json({ message: 'API is running' });
-});
+    logout: () => {
+        // Clear the cookies on logout
+        document.cookie = 'token=; Max-Age=0';
+    },
 
-// Routes
-app.use('/api', authRouter);
+    isAuthenticated: () => {
+        // Check for the presence of the token cookie
+        return document.cookie.includes('token=');
+    },
 
-// Default route for 404
-app.use((req, res, next) => {
-  res.status(404).send('Not Found');
-});
+    getToken: () => {
+        // Extract token from cookie if needed
+        const match = document.cookie.match(new RegExp('(^| )token=([^;]+)'));
+        if (match) return match[2];
+        return null;
+    }
+};
 
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
-});
+// Intercepteurs
+axios.interceptors.request.use(
+    (config) => {
+        const token = authApi.getToken();
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+    },
+    (error) => {
+        console.error('Request interceptor error:', error);
+        return Promise.reject(error);
+    }
+);
+
+axios.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        return handleError(error);
+    }
+);
